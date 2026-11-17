@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Card Game WebSocket Test</title>
+    <script src="https://jsdelivr.net"></script>
+</head>
+<body style="font-family: sans-serif; padding: 20px;">
+    <h2>Card Game Table Test</h2>
+    <button onclick="connect()">1. Connect</button>
+    <button onclick="playCard()">2. Play Card</button>
+    <pre id="logs" style="background: #f4f4f4; padding: 10px; margin-top: 15px;"></pre>
+
+    <script>
+        let stompClient = null;
+        const log = (msg) => document.getElementById('logs').textContent += msg + '\n';
+
+        function connect() {
+            stompClient = new StompJs.Client({
+                brokerURL: 'ws://localhost:8080/ws-game',
+                onConnect: () => {
+                    log('Connected to WebSocket!');
+                    // Subscribe to table 123 events
+                    stompClient.subscribe('/topic/game/123', (message) => {
+                        log('Received from server: ' + message.body);
+                    });
+                }
+            });
+            stompClient.activate();
+        }
+
+        function playCard() {
+            if (!stompClient || !stompClient.connected) return log('Connect first!');
+            stompClient.publish({
+                destination: '/app/game/123/play',
+                body: JSON.stringify({ playerId: 'player1', cardId: 'fireball-01' })
+            });
+            log('Sent move: fireball-01');
+        }
+    </script>
+</body>
+</html>
